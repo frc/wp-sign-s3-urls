@@ -53,7 +53,7 @@ function image_downsize_signed($what, $id, $size = 'medium') {
 
 function sign_s3_replace($content) {
     $ret = preg_replace_callback(
-        '(("|\'|^)(https?)://(\w+).s3.amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
+        '(("|\'|^)(https?:)?//(\w+).s3.amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
         function($m) { return $m[1].sign_s3_url($m[2],$m[3],$m[4]).$m[6]; },
         $content
     );
