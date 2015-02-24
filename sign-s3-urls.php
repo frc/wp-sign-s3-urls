@@ -53,7 +53,7 @@ function image_downsize_signed($what, $id, $size = 'medium') {
 
 function sign_s3_replace($content) {
     $ret = preg_replace_callback(
-        '(("|\'|^)(https?:)?//(\w+).s3.amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
+        '(("|\'|^)(https?:)?//(\w+).s3-eu-west-1.amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
         function($m) { return $m[1].sign_s3_url($m[2],$m[3],$m[4]).$m[6]; },
         $content
     );
@@ -64,7 +64,7 @@ function sign_s3_url($schema,$bucketName,$objectName) {
     $schema = 'https';
     $keyId = getenv('AWS_ACCESS_KEY_ID');
     $secretKey = getenv('AWS_SECRET_ACCESS_KEY');
-    $S3_URL = "$schema://$bucketName.s3.amazonaws.com";
+    $S3_URL = "$schema://$bucketName.s3-eu-west-1.amazonaws.com";
     $expires = time() + getenv('S3_SIGNED_URL_EXPIRY');
     $objectName = url_normalize($objectName);
 
