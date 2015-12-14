@@ -14,41 +14,18 @@ function sign_s3_buf_start() { ob_start("sign_s3_buf_cb"); }
 function sign_s3_buf_end() { ob_end_flush(); }
 function sign_s3_buf_cb($buffer) { return sign_s3_replace($buffer); }
 
-add_filter('wp_get_attachment_url','sign_s3_replace');
-add_filter('image_downsize','image_downsize_signed',0,3);
+add_filter('wp_prepare_attachment_for_js','prepare_url_with_signature', 50);
 
-# adopted from wp-includes/media.php:image_downsize()
-function image_downsize_signed($what, $id, $size = 'medium') {
-    if ( !wp_attachment_is_image($id) ) return false;
-    $img_url = wp_get_attachment_url($id);
-    $meta = wp_get_attachment_metadata($id);
-    $width = $height = 0;
-    $is_intermediate = false;
-    $img_url_basename = wp_basename($img_url);
-    if ( $intermediate = image_get_intermediate_size($id, $size) ) {
-        $img_url = str_replace($img_url_basename, $intermediate['file'], $img_url);
-        $width = $intermediate['width'];
-        $height = $intermediate['height'];
-        $is_intermediate = true;
+function prepare_url_with_signature($response) {
+    if ( isset( $response['url'] ) ) {
+        $response['url'] = sign_s3_replace( $response['url'] );
     }
-    elseif ( $size == 'thumbnail' ) {
-        if ( ($thumb_file = wp_get_attachment_thumb_file($id)) && $info = getimagesize($thumb_file) ) {
-            $img_url = str_replace($img_url_basename, wp_basename($thumb_file), $img_url);
-            $width = $info[0];
-            $height = $info[1];
-            $is_intermediate = true;
+    if ( isset( $response['sizes'] ) && is_array( $response['sizes'] ) ) {
+        foreach ( $response['sizes'] as $key => $value ) {
+            $response['sizes'][ $key ]['url'] = sign_s3_replace( $value['url'] );
         }
     }
-    if ( !$width && !$height && isset( $meta['width'], $meta['height'] ) ) {
-        $width = $meta['width'];
-        $height = $meta['height'];
-    }
-    if ( $img_url) {
-        list( $width, $height ) = image_constrain_size_for_editor( $width, $height, $size );
-        $img_url = sign_s3_replace($img_url);
-        return array( $img_url, $width, $height, $is_intermediate );
-    }
-    return false;
+    return $response;
 }
 
 function sign_s3_replace($content) {
