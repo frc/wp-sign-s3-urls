@@ -34,13 +34,11 @@ function sign_s3_replace($content) {
         function($m) { return $m[1].sign_s3_url($m[2],$m[3],$m[4],$m[5]).$m[7]; },
         $content
     );
-    if ($content === $ret) {
-        $ret = preg_replace_callback(
-            '(("|\'|^)(https?:)?//s3(.*?).amazonaws.com/([\w-]+)/(.+?)(\?.*?)?("|\'|$))',
-            function($m) { return $m[1].sign_s3_url_path($m[2],$m[3],$m[4],$m[5]).$m[7]; },
-            $content
-        );
-    }
+    $ret = preg_replace_callback(
+        '(("|\'|^)(https?:)?//s3(.*?).amazonaws.com/([\w-]+)/(.+?)(\?.*?)?("|\'|$))',
+        function($m) { return $m[1].sign_s3_url_path($m[2],$m[3],$m[4],$m[5]).$m[7]; },
+        $content
+    );
     return $ret;
 }
 
@@ -66,10 +64,10 @@ function sign_s3_url_path($schema,$bucketName,$endpoint,$objectName) {
     $expires = time() + getenv('S3_SIGNED_URL_EXPIRY');
     $objectName = url_normalize($objectName);
 
-    $stringToSign = "GET\n\n\n$expires\n/$bucketName$objectName";
+    $stringToSign = "GET\n\n\n$expires\n/$bucketName/$objectName";
     $sig = urlencode(hex2b64(hash_hmac("sha1",$stringToSign,$secretKey)));
 
-    return "$S3_URL$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
+    return "$S3_URL/$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
 }
 
 function url_normalize($url) {
