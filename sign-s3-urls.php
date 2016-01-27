@@ -67,7 +67,7 @@ function sign_s3_url_path($schema,$endpoint,$bucketName,$objectName) {
     $stringToSign = "GET\n\n\n$expires\n/$bucketName/$objectName";
     $sig = urlencode(hex2b64(hash_hmac("sha1",$stringToSign,$secretKey)));
 
-    return "$S3_URL/$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
+    return "$S3_URL$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
 }
 
 function url_normalize($url) {
