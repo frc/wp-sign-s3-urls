@@ -42,7 +42,7 @@ function sign_s3_replace($content) {
     return $ret;
 }
 
-function sign_s3_url($schema,$endpoint,$bucketName,$objectName) {
+function sign_s3_url($schema,$bucketName,$endpoint,$objectName) {
     $schema = 'https';
     $keyId = getenv('AWS_ACCESS_KEY_ID');
     $secretKey = getenv('AWS_SECRET_ACCESS_KEY');
@@ -56,7 +56,7 @@ function sign_s3_url($schema,$endpoint,$bucketName,$objectName) {
     return "$S3_URL$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
 }
 
-function sign_s3_url_path($schema,$bucketName,$endpoint,$objectName) {
+function sign_s3_url_path($schema,$endpoint,$bucketName,$objectName) {
     $schema = 'https';
     $keyId = getenv('AWS_ACCESS_KEY_ID');
     $secretKey = getenv('AWS_SECRET_ACCESS_KEY');
