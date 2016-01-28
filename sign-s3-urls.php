@@ -29,17 +29,17 @@ function prepare_url_with_signature($response) {
 }
 
 function sign_s3_replace($content) {
-    $ret = preg_replace_callback(
+    $dRet = preg_replace_callback(
         '(("|\'|^)(https?:)?//([\w-]+).s3(.*?).amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
         function($m) { return $m[1].sign_s3_url($m[2],$m[3],$m[4],$m[5]).$m[7]; },
         $content
     );
-    $ret = preg_replace_callback(
+    $pRet = preg_replace_callback(
         '(("|\'|^)(https?:)?//s3(.*?).amazonaws.com/([\w-]+)/(.+?)(\?.*?)?("|\'|$))',
         function($m) { return $m[1].sign_s3_url_path($m[2],$m[3],$m[4],$m[5]).$m[7]; },
-        $content
+        $dRet
     );
-    return $ret;
+    return $pRet;
 }
 
 function sign_s3_url($schema,$bucketName,$endpoint,$objectName) {
