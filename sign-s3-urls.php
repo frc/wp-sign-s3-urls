@@ -15,6 +15,8 @@ function sign_s3_buf_end() { ob_end_flush(); }
 function sign_s3_buf_cb($buffer) { return sign_s3_replace($buffer); }
 
 add_filter('wp_prepare_attachment_for_js','prepare_url_with_signature', 50);
+add_filter('media_send_to_editor','prepare_image_with_signature', 50);
+add_filter('admin_post_thumbnail_html','prepare_image_with_signature', 50);
 
 function prepare_url_with_signature($response) {
     if ( isset( $response['url'] ) ) {
@@ -25,6 +27,12 @@ function prepare_url_with_signature($response) {
             $response['sizes'][ $key ]['url'] = sign_s3_replace( $value['url'] );
         }
     }
+    return $response;
+}
+
+function prepare_image_with_signature($response) {
+    $response = sign_s3_replace( $response );
+    
     return $response;
 }
 
