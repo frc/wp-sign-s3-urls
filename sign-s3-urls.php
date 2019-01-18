@@ -32,11 +32,33 @@ function prepare_url_with_signature($response) {
 
 function prepare_image_with_signature($response) {
     $response = sign_s3_replace( $response );
-    
+
     return $response;
 }
 
 function sign_s3_replace($content) {
+    $urls = getenv('S3_SIGNED_URL_LIST');
+    global $as3cf;
+
+    if ($urls && $as3cf instanceof Amazon_S3_And_CloudFront) {
+
+        $urls = explode(',', $urls);
+        $bucket = $as3cf->get_setting('bucket');
+        foreach ($urls as $url) {
+            $url = trim($url);
+            $parse = parse_url($url);
+            $domain = $parse['host'];
+
+            $content = preg_replace_callback(
+                '(("|\'|^)(https?:)?//'.$domain.'(/.+?)(\?.*?)?("|\'|$))',
+                function ($m) use ($url, $bucket) {
+                    return $m[1] . sign_custom_url($url, $bucket, $m[3]) . $m[5];
+                },
+                $content
+            );
+        }
+    }
+
     $dRet = preg_replace_callback(
         '(("|\'|^)(https?:)?//([\w-]+).s3(.*?).amazonaws.com(/.+?)(\?.*?)?("|\'|$))',
         function($m) { return $m[1].sign_s3_url($m[2],$m[3],$m[4],$m[5]).$m[7]; },
@@ -48,6 +70,18 @@ function sign_s3_replace($content) {
         $dRet
     );
     return $pRet;
+}
+
+function sign_custom_url($url,$bucketName,$objectName) {
+    $keyId = getenv('AWS_ACCESS_KEY_ID');
+    $secretKey = getenv('AWS_SECRET_ACCESS_KEY');
+    $expires = time() + getenv('S3_SIGNED_URL_EXPIRY');
+    $objectName = url_normalize($objectName);
+
+    $stringToSign = "GET\n\n\n$expires\n/$bucketName$objectName";
+    $sig = urlencode(hex2b64(hash_hmac("sha1",$stringToSign,$secretKey)));
+
+    return "$url$objectName?AWSAccessKeyId=$keyId&Expires=$expires&Signature=$sig";
 }
 
 function sign_s3_url($schema,$bucketName,$endpoint,$objectName) {
