@@ -9,7 +9,7 @@ Author: Panu Ervamaa
 add_action('admin_head', 'sign_s3_buf_start');
 add_action('admin_footer', 'sign_s3_buf_end');
 add_action('wp_head', 'sign_s3_buf_start');
-add_action('wp_footer', 'sign_s3_buf_end');
+add_action('wp_footer', 'sign_s3_buf_end', 1001); // after admin bar
 function sign_s3_buf_start() { ob_start("sign_s3_buf_cb"); }
 function sign_s3_buf_end() { if (ob_get_contents()) { ob_end_flush(); } }
 function sign_s3_buf_cb($buffer) { return sign_s3_replace($buffer); }
