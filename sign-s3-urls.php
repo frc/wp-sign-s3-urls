@@ -14,9 +14,10 @@ function sign_s3_buf_start() { ob_start("sign_s3_buf_cb"); }
 function sign_s3_buf_end() { if (ob_get_contents()) { ob_end_flush(); } }
 function sign_s3_buf_cb($buffer) { return sign_s3_replace($buffer); }
 
-add_filter('wp_prepare_attachment_for_js','prepare_url_with_signature', 50);
+add_filter('wp_prepare_attachment_for_js','prepare_url_with_signature', 100);
 add_filter('media_send_to_editor','prepare_image_with_signature', 50);
 add_filter('admin_post_thumbnail_html','prepare_image_with_signature', 50);
+add_filter('wp_get_attachment_image_src','prepare_attachment_src_with_signature', 100, 4);
 
 function prepare_url_with_signature($response) {
     if ( isset( $response['url'] ) ) {
@@ -34,6 +35,15 @@ function prepare_image_with_signature($response) {
     $response = sign_s3_replace( $response );
 
     return $response;
+}
+
+function prepare_attachment_src_with_signature($image, $attachment_id, $size, $icon) {
+    // thumbnail preview after async upload
+    if (isset($_REQUEST['fetch'])) {
+        $image = sign_s3_replace($image);
+    }
+
+    return $image;
 }
 
 function sign_s3_replace($content) {
